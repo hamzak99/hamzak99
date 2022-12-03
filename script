@@ -1,0 +1,26 @@
+#!/bin/bash
+
+name=`uname -a`
+cpup=`lscpu | grep "Socket" | cut -d ":" -f 2 | tr -d '[:blank:]'`
+vcpu=`grep "processor" /proc/cpuinfo | wc -l`
+memo=`free --mega | grep Mem | awk '{printf("Memory Usage: %i/%iMB (%.2f%%)\n", $3, $2, $3/$2*100)}'`
+disk=`df --total -h | grep "total" | awk '{printf("%s/%s (%.2f%%)",$3,$2,$3/2*100)}'`
+cpul=`top -bn1 | grep "%Cpu" | awk '{printf(" %.1f%%\n", (100-$8)%100)}'`
+boot=`who -b | awk '{printf("%s %s",$3,$4)}'`
+lvm=`if [ $(lsblk | grep "lvm" | wc -l) -eq 0 ]; then echo "no"; else echo "yes"; fi`
+tcp=`ss -s | grep "TCP" | head -n 1 | awk '{print($2,"ESTABLISHED")}'`
+user=`who | wc -l | uniq`
+sudo=` cat  /var/log/sudo/sudo.log | grep "TSID"  | wc -l`
+wall "
+        #Architecture: $name
+        #CPU physical :$cpup
+        #vCPU :$vcpu
+        #Memory Usage:$memo
+        #Disk Usage:$disk
+        #CPU load:$cpul
+        #Last boot:$boot
+        #LVM use:$lvm
+        #Connections TCP :$tcp
+        #User log: $user
+        #Network: IP `hostname -I` (`cat /sys/class/net/*/address | head -n 1`)
+        #Sudo :$sudo
